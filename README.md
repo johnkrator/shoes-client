@@ -412,7 +412,7 @@ Ensure you have the Vercel CLI installed and configured with your account.
 
 ## Live Deployed URL
 
-https://shoes-jet.vercel.app/
+https://airjordan-nine.vercel.app/
 
 ---
 

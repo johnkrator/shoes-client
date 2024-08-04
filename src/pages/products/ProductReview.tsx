@@ -1,9 +1,9 @@
-import React, {useState, useEffect} from "react";
-import {useParams} from "react-router-dom";
-import {useSelector} from "react-redux";
-import {toast} from "react-toastify";
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { toast } from "react-toastify";
 import Container from "@/Container.tsx";
-import {MdOutlineStar} from "react-icons/md";
+import { MdOutlineStar } from "react-icons/md";
 import locator from "@/assets/product-details/Vector.png";
 import {
     Select,
@@ -12,8 +12,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import {Button} from "@/components/ui/button.tsx";
-import {Textarea} from "@/components/ui/textarea.tsx";
+import { Button } from "@/components/ui/button.tsx";
+import { Textarea } from "@/components/ui/textarea.tsx";
 import pickup from "@/assets/product-details/Group 49533.png";
 import delivery from "@/assets/product-details/Group 49534.png";
 import returnPolicy from "@/assets/product-details/Group 49535.png";
@@ -24,52 +24,42 @@ import {
 } from "@/redux/api/productApiSlice.ts";
 import LazyImage from "@/components/LazyImage.tsx";
 import Pagination from "@/components/Pagination.tsx";
-import {toastConfig} from "@/components/toastConfig.ts";
-import {Review} from "@/types/Review.ts";
+import { toastConfig } from "@/components/toastConfig.ts";
+import { Review } from "@/types/Review.ts";
+import {addReview, setError, setLoading, setReviews} from "@/redux/features/reviewSlice.ts";
+import {RootState} from "@/redux/store.ts";
 
 const REVIEWS_PER_PAGE = 5;
 
 const ProductReview = () => {
-    const {id: productId} = useParams<{ id: string }>();
+    const { id: productId } = useParams<{ id: string }>();
     const [rating, setRating] = useState<number>(0);
     const [comment, setComment] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
-    const [reviews, setReviews] = useState<Review[]>([]);
 
-    const {refetch: refetchProductDetails} = useGetProductDetailsQuery(productId);
-    const {data: reviewsData, refetch: refetchReviews} = useGetAllReviewsQuery(productId);
-    const [createReview, {isLoading: loadingProductReview}] = useCreateReviewMutation();
+    const dispatch = useDispatch();
+    const { reviews, loading} = useSelector((state: RootState) => state.review);
+    const { userInfo } = useSelector((state: RootState) => state.auth);
 
-    const {userInfo} = useSelector((state: any) => state.auth);
-
-    useEffect(() => {
-        // Load reviews from localStorage on component mount
-        const storedReviews = localStorage.getItem(`reviews_${productId}`);
-        if (storedReviews) {
-            setReviews(JSON.parse(storedReviews));
-        }
-    }, [productId]);
+    const { refetch: refetchProductDetails } = useGetProductDetailsQuery(productId);
+    const { data: reviewsData, refetch: refetchReviews } = useGetAllReviewsQuery(productId);
+    const [createReview, { isLoading: loadingProductReview }] = useCreateReviewMutation();
 
     useEffect(() => {
         if (reviewsData?.data) {
-            console.log("Reviews from API:", reviewsData.data);
-            setReviews(reviewsData.data);
-            // Store reviews in localStorage
-            localStorage.setItem(`reviews_${productId}`, JSON.stringify(reviewsData.data));
+            dispatch(setReviews(reviewsData.data));
         }
-    }, [reviewsData, productId]);
+    }, [reviewsData, dispatch]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!productId) {
-            toast.error("Product ID is missing", {
-                position: "top-center",
-                autoClose: 2000,
-            });
+            toast.error("Product ID is missing", toastConfig);
             return;
         }
         try {
-            const result = await createReview({productId, rating, comment}).unwrap();
+            dispatch(setLoading(true));
+            const result = await createReview({ productId, rating, comment }).unwrap();
             const newReview: Review = {
                 _id: result.data.review._id,
                 productId: result.data.review.productId,
@@ -80,11 +70,7 @@ const ProductReview = () => {
                 updatedAt: result.data.review.updatedAt,
                 v: result.data.review.v,
             };
-            const updatedReviews = [newReview, ...reviews];
-            setReviews(updatedReviews);
-            // Update localStorage
-            localStorage.setItem(`reviews_${productId}`, JSON.stringify(updatedReviews));
-            console.log("Updated reviews:", updatedReviews);
+            dispatch(addReview(newReview));
             toast.success("Review submitted successfully", toastConfig);
             setRating(0);
             setComment("");
@@ -92,7 +78,11 @@ const ProductReview = () => {
             refetchReviews();
         } catch (err: unknown) {
             const error = err as { data?: { message?: string } };
-            toast.error(error.data?.message || "Something went wrong", toastConfig);
+            const errorMessage = error.data?.message || "Something went wrong";
+            dispatch(setError(errorMessage));
+            toast.error(errorMessage, toastConfig);
+        } finally {
+            dispatch(setLoading(false));
         }
     };
 
@@ -168,10 +158,10 @@ const ProductReview = () => {
                                 </div>
                                 <Button
                                     type="submit"
-                                    disabled={loadingProductReview}
+                                    disabled={loading || loadingProductReview}
                                     className="bg-[#e0551b] text-white px-4 py-2 rounded hover:bg-[#c94c18] transition-colors"
                                 >
-                                    {loadingProductReview ? "Submitting..." : "Submit"}
+                                    {loading || loadingProductReview ? "Submitting..." : "Submit"}
                                 </Button>
                             </form>
                         )}
@@ -202,7 +192,6 @@ const ProductReview = () => {
                             </div>
                         </div>
                     </div>
-
                 </div>
             </Container>
         </div>
