@@ -10,3 +10,15 @@ export interface Product {
     delivery_info?: string;
     return_info?: string;
 }
+
+export interface OrderProduct {
+    productId: {
+        _id: string;
+        name: string;
+        images: string[];
+        colors: string[];
+        sizes: string[];
+        price: number;
+    };
+    quantity: number;
+}

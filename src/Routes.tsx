@@ -19,6 +19,7 @@ import PaymentSuccessConfetti from "@/pages/order/PaymentSuccessConfetti.tsx";
 import AdminRoute from "@/pages/admin/AdminRoute.tsx";
 import ProductList from "@/pages/admin/ProductList.tsx";
 import AddProduct from "@/pages/admin/AddProduct.tsx";
+import OrderHistory from "@/pages/order/OrderHistory.tsx";
 
 const Routes = () => {
     return createBrowserRouter([
@@ -50,7 +51,7 @@ const Routes = () => {
                     element: <PrivateRoute/>,
                     children: [
                         {path: "profile", element: <Profile/>},
-                        {path: "orders", element: <OrderDetails/>},
+                        {path: "orders/:orderId", element: <OrderDetails/>},
                     ],
                 },
 
@@ -60,6 +61,7 @@ const Routes = () => {
                     element: <AdminRoute/>,
                     children: [
                         {path: "add-product", element: <AddProduct/>},
+                        {path: "orders", element: <OrderHistory/>},
                         {path: "product-list", element: <ProductList/>},
                     ],
                 },
