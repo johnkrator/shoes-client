@@ -79,7 +79,14 @@ const ProductDesc: React.FC = () => {
         }
     };
 
-    if (isLoading) return <SkeletonDemo/>;
+    if (isLoading) return(
+        <Container>
+            <div className='my-10'>
+                <SkeletonDemo/>
+            </div>
+        </Container>
+    ) ;
+
     if (error) {
         let errorMessage = "An error occurred";
         if (typeof error === "object" && error !== null) {

@@ -116,6 +116,12 @@ const Navigation = () => {
                                                             Product List
                                                         </DropdownMenuItem>
                                                     </Link>
+
+                                                    <Link className="font-bold" to="/admin/orders">
+                                                        <DropdownMenuItem className="cursor-pointer capitalize">
+                                                            Order History
+                                                        </DropdownMenuItem>
+                                                    </Link>
                                                 </>
                                             )}
                                         </>
